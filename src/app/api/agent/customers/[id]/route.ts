@@ -9,7 +9,8 @@ export async function PATCH(req: Request, { params }: RequestParams) {
   if (!session?.user?.agencyId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, phone, defaultAmount } = await req.json();
+  const body = await req.json();
+  const { name, phone, defaultAmount } = body;
 
   const customer = await prisma.customer.update({
     where: { id, agencyId: session.user.agencyId },
