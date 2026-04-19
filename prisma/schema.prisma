@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String  @id @default(cuid())
+  name     String
+  email    String  @unique
+  password String
+  agencyId String? // Replaces labId: Links staff to an Agency
+  agency   Agency? @relation(fields: [agencyId], references: [id])
+
+  roleUsers RoleUser[]
+  sessions  Session[]
+  logs      Log[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Role {
+  id              String           @id @default(cuid())
+  guardName       String           @unique // e.g., "SUPER_ADMIN", "AGENT_OWNER"
+  roleUsers       RoleUser[]
+  permissionRoles PermissionRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  guardName       String           @unique // e.g., "CREATE_TRANSACTION", "DELETE_PRODUCT"
+  permissionRoles PermissionRole[]
+
+  @@map("permissions")
+}
+
+model RoleUser {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles  Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("role_users")
+}
+
+model PermissionRole {
+  id           String     @id @default(cuid())
+  permissionId String
+  roleId       String
+  permissions  Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  roles        Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([permissionId, roleId])
+  @@map("permission_roles")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  type      String // e.g., "AUTH_LOGIN_SUCCESS", "TRANSACTION_SENT"
+  severity  String // e.g., "INFO", "WARNING", "ERROR"
+  message   String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@map("logs")
+}
+
+// --- Ascii Pay Business Logic ---
+
+model Agency {
+  id           String        @id @default(cuid())
+  name         String // e.g., "Abebe Telecom Center"
+  phone        String
+  balance      Float         @default(0.0) // Virtual ledger
+  users        User[] // Staff working here
+  products     Product[]
+  customers    Customer[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+
+  @@map("agencies")
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  name         String // e.g., "100 ETB Card", "Water Bill"
+  price        Float
+  agencyId     String
+  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("products")
+}
+
+model Customer {
+  id            String        @id @default(cuid())
+  name          String
+  phone         String // Used for USSD Push
+  defaultAmount Float?
+  agencyId      String
+  agency        Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+
+  @@map("customers")
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+model Transaction {
+  id     String            @id @default(cuid())
+  amount Float
+  status TransactionStatus @default(PENDING)
+  type   String            @default("USSD_PUSH")
+
+  agencyId   String
+  customerId String
+  productId  String?
+
+  agency   Agency   @relation(fields: [agencyId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  product  Product? @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("transactions")
+}
