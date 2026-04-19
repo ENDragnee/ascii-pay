@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${jetbrainsMono.variable} font-mono antialiased`}>
+    <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
+      <body className={`${jetbrainsMono.variable} font-mono antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}>
         <RootProvider>{children}</RootProvider>
       </body>
     </html>
