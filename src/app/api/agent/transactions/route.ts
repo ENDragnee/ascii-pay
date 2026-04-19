@@ -2,17 +2,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { GetApiSession } from "@/lib/server-auth";
 import { eventEmitter, EVENTS } from "@/lib/events";
+import { TransactionWithRelations } from "@/types";
 
 export async function GET() {
   const session = await GetApiSession();
-  if (!session?.user?.agencyId)
+  if (!session?.user?.agencyId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const transactions = await prisma.transaction.findMany({
     where: { agencyId: session.user.agencyId },
     include: {
       customer: true,
       product: true,
+      agency: true,
     },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -23,8 +26,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await GetApiSession();
-  if (!session?.user?.agencyId)
+  if (!session?.user?.agencyId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { customerId, productId, amount } = await req.json();
 
@@ -34,16 +38,20 @@ export async function POST(req: Request) {
       status: "PENDING",
       agencyId: session.user.agencyId,
       customerId,
-      productId,
+      productId: productId || null,
     },
     include: {
       customer: true,
       agency: true,
+      product: true,
     },
   });
 
-  // Emit the event for the Simulator to catch
-  eventEmitter.emit(EVENTS.TRANSACTION_CREATED, transaction);
+  // Cast to TransactionWithRelations to ensure the Simulator has all fields
+  eventEmitter.emit(
+    EVENTS.TRANSACTION_CREATED,
+    transaction as TransactionWithRelations,
+  );
 
   return NextResponse.json(transaction);
 }

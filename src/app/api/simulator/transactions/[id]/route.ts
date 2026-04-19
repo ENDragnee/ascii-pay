@@ -10,10 +10,13 @@ export async function PATCH(req: Request, { params }: RequestParams) {
   const transaction = await prisma.transaction.update({
     where: { id },
     data: { status },
-    include: { agency: true },
+    include: {
+      customer: true,
+      agency: true,
+      product: true,
+    },
   });
 
-  // Emit event so the Agent Dashboard knows the user paid!
   eventEmitter.emit(EVENTS.TRANSACTION_UPDATED, transaction);
 
   return NextResponse.json(transaction);

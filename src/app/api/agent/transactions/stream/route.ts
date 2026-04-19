@@ -18,14 +18,12 @@ export async function GET(req: NextRequest) {
     start(controller) {
       const encoder = new TextEncoder();
 
-      // Type-safe event dispatcher
       const SendEvent = (event: string, data: TransactionWithRelations) => {
         controller.enqueue(
           encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
         );
       };
 
-      // Listeners with explicit types
       const OnTransactionUpdate = (data: TransactionWithRelations) => {
         if (data.agencyId === agencyId) {
           SendEvent(EVENTS.TRANSACTION_UPDATED, data);
