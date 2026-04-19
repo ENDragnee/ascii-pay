@@ -86,8 +86,8 @@ export const authOptions: NextAuthOptions = {
         await prisma.session.create({
           data: {
             userId: user.id,
-            userAgent,
-            ipAddress: ip,
+            userAgent: userAgent || null,
+            ipAddress: ip || null,
             expiresAt,
             sessionToken,
           },
