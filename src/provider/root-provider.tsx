@@ -5,14 +5,14 @@ import { Provider as ReduxProvider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
-import { store } from "@/lib/redux/store";
+import { asciiStore } from "@/lib/redux/store";
 
 const queryClient = new QueryClient();
 
 export function RootProvider({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <ReduxProvider store={store}>
+      <ReduxProvider store={asciiStore}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider
             attribute="class"

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -15,7 +12,7 @@ model User {
   name     String
   email    String  @unique
   password String
-  agencyId String? // Replaces labId: Links staff to an Agency
+  agencyId String?
   agency   Agency? @relation(fields: [agencyId], references: [id])
 
   roleUsers RoleUser[]
@@ -23,24 +20,30 @@ model User {
   logs      Log[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("users")
 }
 
 model Role {
   id              String           @id @default(cuid())
-  guardName       String           @unique // e.g., "SUPER_ADMIN", "AGENT_OWNER"
+  guardName       String           @unique
   roleUsers       RoleUser[]
   permissionRoles PermissionRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("roles")
 }
 
 model Permission {
   id              String           @id @default(cuid())
-  guardName       String           @unique // e.g., "CREATE_TRANSACTION", "DELETE_PRODUCT"
+  guardName       String           @unique
   permissionRoles PermissionRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("permissions")
 }
@@ -52,6 +55,9 @@ model RoleUser {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   roles  Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
   @@unique([userId, roleId])
   @@map("role_users")
 }
@@ -62,6 +68,9 @@ model PermissionRole {
   roleId       String
   permissions  Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
   roles        Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([permissionId, roleId])
   @@map("permission_roles")
@@ -76,44 +85,52 @@ model Session {
   expiresAt    DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
   @@map("sessions")
 }
 
 model Log {
-  id        String   @id @default(cuid())
-  type      String // e.g., "AUTH_LOGIN_SUCCESS", "TRANSACTION_SENT"
-  severity  String // e.g., "INFO", "WARNING", "ERROR"
-  message   String
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id       String  @id @default(cuid())
+  type     String
+  severity String
+  message  String
+  userId   String?
+  user     User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("logs")
 }
 
-// --- Ascii Pay Business Logic ---
-
 model Agency {
   id           String        @id @default(cuid())
-  name         String // e.g., "Abebe Telecom Center"
+  name         String
   phone        String
-  balance      Float         @default(0.0) // Virtual ledger
-  users        User[] // Staff working here
+  balance      Float         @default(0.0)
+  users        User[]
   products     Product[]
   customers    Customer[]
   transactions Transaction[]
-  createdAt    DateTime      @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("agencies")
 }
 
 model Product {
   id           String        @id @default(cuid())
-  name         String // e.g., "100 ETB Card", "Water Bill"
+  name         String
   price        Float
   agencyId     String
   agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("products")
 }
@@ -121,11 +138,14 @@ model Product {
 model Customer {
   id            String        @id @default(cuid())
   name          String
-  phone         String // Used for USSD Push
+  phone         String
   defaultAmount Float?
   agencyId      String
   agency        Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   transactions  Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("customers")
 }
@@ -152,7 +172,7 @@ model Transaction {
   product  Product? @relation(fields: [productId], references: [id])
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("transactions")
 }
