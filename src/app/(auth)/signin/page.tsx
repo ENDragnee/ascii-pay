@@ -1,5 +1,17 @@
 import { UserAuthForm } from "@/components/auth/user-auth-form";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { Suspense } from "react";
+
+function AuthFormFallback() {
+  return (
+    <div className="flex h-[350px] w-full flex-col items-center justify-center space-y-4 border-2 border-dashed border-muted">
+      <div className="h-4 w-24 animate-pulse bg-muted" />
+      <div className="h-10 w-full animate-pulse bg-muted" />
+      <div className="h-10 w-full animate-pulse bg-muted" />
+      <div className="h-12 w-full animate-pulse bg-muted" />
+    </div>
+  );
+}
 
 export default function SignInPage() {
   return (
@@ -23,7 +35,9 @@ export default function SignInPage() {
         </div>
 
         <div className="border-3 border-primary bg-card p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_oklch(0.922_0_0)]">
-          <UserAuthForm />
+          <Suspense fallback={<AuthFormFallback />}>
+            <UserAuthForm />
+          </Suspense>
         </div>
 
         <div className="flex flex-col gap-4 px-8 text-center">

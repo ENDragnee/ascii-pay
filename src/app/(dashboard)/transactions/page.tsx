@@ -12,7 +12,7 @@ import { toast } from "sonner";
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
 
-  const { data: transactions, isLoading } = useQuery<TransactionWithRelations[]>({
+  const { data: transactions, isLoading, refetch } = useQuery<TransactionWithRelations[]>({
     queryKey: ["transactions"],
     queryFn: async () => {
       const res = await apiClient.get("/agent/transactions");
@@ -58,6 +58,7 @@ export default function TransactionsPage() {
       <TransactionList
         transactions={transactions || []}
         isLoading={isLoading}
+        onRefreshAction={refetch}
       />
     </DashboardShell>
   );

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 export default function HistoryPage() {
-  const { data: transactions, isLoading } = useQuery<TransactionWithRelations[]>({
+  const { data: transactions, isLoading, refetch } = useQuery<TransactionWithRelations[]>({
     queryKey: ["transaction-history"],
     queryFn: async () => {
       const res = await apiClient.get("/agent/transactions");
@@ -32,6 +32,7 @@ export default function HistoryPage() {
         <TransactionList
           transactions={transactions || []}
           isLoading={isLoading}
+          onRefreshAction={refetch}
         />
       </div>
     </DashboardShell>
